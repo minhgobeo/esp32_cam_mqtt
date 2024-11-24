@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "E:/tai_lieu_tim_idea_lam_detection_fire/code_project"
+		},
+		{
+			"name": "cam_esp32",
+			"path": ".."
+		},
+		{
+			"name": "ESP32-cam-MQTT",
+			"path": "E:/tai_lieu_tim_idea_lam_detection_fire/code_project/ESP32-cam-MQTT"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"string": "cpp"
+		}
+	}
+}
