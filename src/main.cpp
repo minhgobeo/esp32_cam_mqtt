@@ -38,6 +38,8 @@
 #include "camera_pins.h"
 #include "credential.h"
 #include "connect_mqtt.h"
+#include <WiFiClientSecure.h>
+
 // ===========================
 // Enter your WiFi credentials
 // ===========================

@@ -4,6 +4,7 @@
 #include <PubSubClient.h>
 #include <soc/rtc_cntl_reg.h>
 #include "soc/soc.h"
+#include <WiFiClientSecure.h>
 
 
 
@@ -24,7 +25,7 @@ const char* topic_PUBLISH = "sendPicture";
 const char* topic_FLASH = "setFlash";
 extern const int MAX_PAYLOAD;
 // MQTT client
-WiFiClient espClient;
+WiFiClientSecure espClient;
 PubSubClient client(espClient);
 
 void sendMQTT(const uint8_t *buf, uint32_t len)
