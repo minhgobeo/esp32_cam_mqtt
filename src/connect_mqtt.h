@@ -50,8 +50,8 @@ void connectMQTT() {
             if (client.connect(clientID, mqttUser, mqttPassword)) {
                 Serial.println("Connected to MQTT broker!");
                 // Resubscribe to topics after connection
-                //client.subscribe(topic_PHOTO);
-                //client.subscribe(topic_FLASH);
+                client.subscribe(topic_PHOTO);
+                client.subscribe(topic_FLASH);
             } else {
                 Serial.print("MQTT connection failed: ");
                 Serial.println(client.state());
