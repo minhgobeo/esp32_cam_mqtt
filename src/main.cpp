@@ -35,9 +35,11 @@
 //#define CAMERA_MODEL_ESP32S3_CAM_LCD
 //#define CAMERA_MODEL_DFRobot_FireBeetle2_ESP32S3 // Has PSRAM
 //#define CAMERA_MODEL_DFRobot_Romeo_ESP32S3 // Has PSRAM
+
 #include "camera_pins.h"
 #include "credential.h"
 #include "connect_mqtt.h"
+
 // ===========================
 // Enter your WiFi credentials
 // ===========================
@@ -46,13 +48,11 @@
 
 bool useMQTT = true;
 
-
 extern const int MAX_PAYLOAD = 60000;
 
 bool flash;
 void startCameraServer();
 void setupLedFlash(int pin);
-
 
 void connectWIFI() {
     if (WiFi.status() != WL_CONNECTED) {
@@ -70,7 +70,7 @@ void connectWIFI() {
 
         if (WiFi.status() == WL_CONNECTED) {
             Serial.println("\nWiFi connected");
-            Serial.print("IP Address: ");
+            Serial.print("Camera Ready! Use 'http://");
             Serial.println(WiFi.localIP());
         } else {
             Serial.println("\nWiFi connection failed.");
