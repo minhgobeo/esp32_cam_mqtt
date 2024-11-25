@@ -253,6 +253,7 @@ void setup() {
   Serial.println("' to connect");
   espClient.setInsecure();
   client.setServer(mqttServer, port_mqtt);
+  client.setBufferSize(MAX_PAYLOAD);
   client.setCallback(callback);
   connectMQTT();
 }
@@ -260,7 +261,7 @@ void setup() {
 void loop() {
   // Do nothing. Everything is done in another task by the web server
     if (!client.connected()) {
-        connectMQTT();
+        connectWIFIandMQTT();
     }
   client.loop();
   delay(10000);

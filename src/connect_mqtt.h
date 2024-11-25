@@ -35,6 +35,7 @@ void sendMQTT(const uint8_t *buf, uint32_t len)
   else
   {
     Serial.print("Picture sent? : ");
+    client.publish(topic_PUBLISH, buf, len, false);
     Serial.println(client.publish(topic_PUBLISH, buf, len, false));
   }
 }
