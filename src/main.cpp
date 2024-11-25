@@ -251,6 +251,7 @@ void setup() {
   Serial.print("Camera Ready! Use 'http://");
   Serial.print(WiFi.localIP());
   Serial.println("' to connect");
+  espClient.setInsecure();
   client.setServer(mqttServer, port_mqtt);
   client.setCallback(callback);
   connectMQTT();
