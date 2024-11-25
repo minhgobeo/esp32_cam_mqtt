@@ -35,138 +35,22 @@
 //#define CAMERA_MODEL_ESP32S3_CAM_LCD
 //#define CAMERA_MODEL_DFRobot_FireBeetle2_ESP32S3 // Has PSRAM
 //#define CAMERA_MODEL_DFRobot_Romeo_ESP32S3 // Has PSRAM
-
 #include "camera_pins.h"
-#include "credential.h"
-#include "connect_mqtt.h"
 
 // ===========================
 // Enter your WiFi credentials
 // ===========================
+const char *ssid = "iPhone";
+const char *password = "12345679";
 
-#define LED_BUILTIN 4
-
-bool useMQTT = true;
-
-extern const int MAX_PAYLOAD = 60000;
-
-bool flash;
 void startCameraServer();
 void setupLedFlash(int pin);
 
-void connectWIFI() {
-    if (WiFi.status() != WL_CONNECTED) {
-        Serial.println("Connecting to WiFi...");
-        WiFi.mode(WIFI_STA);
-        WiFi.begin(ssid, password);
-
-        unsigned long startAttemptTime = millis();
-
-        // Wait for connection with timeout
-        while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < 30000) { // 30s timeout
-            delay(500);
-            Serial.print(".");
-        }
-
-        if (WiFi.status() == WL_CONNECTED) {
-            Serial.println("\nWiFi connected");
-            Serial.print("Camera Ready! Use 'http://");
-            Serial.println(WiFi.localIP());
-        } else {
-            Serial.println("\nWiFi connection failed.");
-        }
-    }
-}
-
-
-void connectWIFIandMQTT() {
-    connectWIFI();
-    connectMQTT();
-}
-
-
-
-void set_flash()
-{
-  flash = !flash;
-  Serial.print("Setting flash to");
-  Serial.println(flash);
-  if(!flash)
-  {
-    for (int i = 0; i < 6; i++)
-    {
-      digitalWrite(LED_BUILTIN, HIGH);
-      delay(100);
-      digitalWrite(LED_BUILTIN, LOW);
-      delay(100);
-    }
-  }
-  if(flash)
-  {
-    for (int i = 0; i < 3; i++)
-    {
-      digitalWrite(LED_BUILTIN, HIGH);
-      delay(500);
-      digitalWrite(LED_BUILTIN, LOW);
-      delay(500);
-    }
-  }
-}
-
-void take_picture(){
-  camera_fb_t *fb = NULL;
-  if(flash){
-    digitalWrite(LED_BUILTIN, HIGH);
-  };
-  Serial.println("Taking picture");
-  fb = esp_camera_fb_get(); // used to get a single picture
-
-  if(!fb){
-    Serial.println("Camera capture failed");
-    return;
-  }
-  Serial.println("Picture taken");
-  digitalWrite(LED_BUILTIN, LOW);
-
-  esp_camera_fb_return(fb);
-  delay(100);
-  fb = esp_camera_fb_get();
-  esp_camera_fb_return(fb);
-  delay(100);
-  fb = esp_camera_fb_get();
-  delay(500);
-
-  connectWIFIandMQTT();
-
-  sendMQTT(fb->buf, fb->len);
-  delay(300);
-  esp_camera_fb_return(fb);
-}
-void callback(String topic, byte* message, unsigned int length){
-  String messageTemp;
-  Serial.println(topic);
-  for (int i = 0; i < length; i++)
-  {
-    messageTemp += (char)message[i];
-  }
-  if(topic == topic_PHOTO)
-  {
-    take_picture();
-  }
-  if(topic == topic_FLASH)
-  {
-    set_flash();
-  }
-}
 void setup() {
-  WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
-  // Define Flash as an output
-  pinMode(LED_BUILTIN, OUTPUT);
-  // Initialise the Serial Communication
   Serial.begin(115200);
   Serial.setDebugOutput(true);
   Serial.println();
-  // Config Camera Settings
+
   camera_config_t config;
   config.ledc_channel = LEDC_CHANNEL_0;
   config.ledc_timer = LEDC_TIMER_0;
@@ -255,31 +139,22 @@ void setup() {
 
   WiFi.begin(ssid, password);
   WiFi.setSleep(false);
-  client.setServer(mqttServer, port_mqtt);
-  client.setCallback(callback);
 
-  connectWIFIandMQTT();
-  Serial.println("Setup complete.");
- 
-  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.println("WiFi connected");
+
+  startCameraServer();
+
+  Serial.print("Camera Ready! Use 'http://");
+  Serial.print(WiFi.localIP());
+  Serial.println("' to connect");
 }
 
 void loop() {
-    static unsigned long lastReconnectAttempt = 0;
-
-    // Reconnect WiFi if disconnected
-    if (WiFi.status() != WL_CONNECTED) {
-        connectWIFI();
-    }
-
-    // Attempt MQTT reconnection if disconnected
-    if (!client.connected()) {
-        unsigned long now = millis();
-        if (now - lastReconnectAttempt > 5000) { // Retry every 5 seconds
-            lastReconnectAttempt = now;
-            connectMQTT();
-        }
-    } else {
-        client.loop();
-    }
+  // Do nothing. Everything is done in another task by the web server
+  delay(10000);
 }
