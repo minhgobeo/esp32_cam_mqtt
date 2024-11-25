@@ -5,14 +5,16 @@
 #include <soc/rtc_cntl_reg.h>
 #include "soc/soc.h"
 
-WiFiClient espClient;
-PubSubClient client(espClient);
+
 
 const char* mqttServer = "bf9e78d9019447609bada8c1a9b76912.s1.eu.hivemq.cloud";
+
 const char* clientID = "esp32_cam";
 
 const char* mqttUser = "test_MQQT";
+
 const char* mqttPassword = "123ABC456abc";
+
 const int port_mqtt = 8883;
 
 
@@ -21,6 +23,9 @@ const char* topic_PHOTO = "takePicture";
 const char* topic_PUBLISH = "sendPicture";
 const char* topic_FLASH = "setFlash";
 extern const int MAX_PAYLOAD;
+// MQTT client
+WiFiClient espClient;
+PubSubClient client(espClient);
 
 void sendMQTT(const uint8_t *buf, uint32_t len)
 {
@@ -39,10 +44,8 @@ void sendMQTT(const uint8_t *buf, uint32_t len)
 void connectMQTT() {
     if (!client.connected()) {
         Serial.println("Connecting to MQTT...");
-        unsigned long startAttemptTime = millis();
-
         // Attempt to connect with retries
-        while (!client.connected() && millis() - startAttemptTime < 30000) { // 30s timeout
+        while (!client.connected()) { // 30s timeout
             if (client.connect(clientID, mqttUser, mqttPassword)) {
                 Serial.println("Connected to MQTT broker!");
                 // Resubscribe to topics after connection
@@ -55,9 +58,6 @@ void connectMQTT() {
             }
         }
 
-        if (!client.connected()) {
-            Serial.println("Failed to connect to MQTT within timeout.");
-        }
     }
 }
 

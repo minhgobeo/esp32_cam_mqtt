@@ -37,13 +37,125 @@
 //#define CAMERA_MODEL_DFRobot_Romeo_ESP32S3 // Has PSRAM
 #include "camera_pins.h"
 #include "credential.h"
+#include "connect_mqtt.h"
 // ===========================
 // Enter your WiFi credentials
 // ===========================
 
+#define LED_BUILTIN 4
+
+bool useMQTT = true;
+
+
+extern const int MAX_PAYLOAD = 60000;
+
+bool flash;
 
 void startCameraServer();
 void setupLedFlash(int pin);
+
+void connectWIFI() {
+    if (WiFi.status() != WL_CONNECTED) {
+        Serial.println("Connecting to WiFi...");
+        WiFi.mode(WIFI_STA);
+        WiFi.begin(ssid, password);
+
+        unsigned long startAttemptTime = millis();
+
+        // Wait for connection with timeout
+        while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < 30000) { // 30s timeout
+            delay(500);
+            Serial.print(".");
+        }
+
+        if (WiFi.status() == WL_CONNECTED) {
+            Serial.println("\nWiFi connected");
+            Serial.print("IP Address: ");
+            Serial.println(WiFi.localIP());
+        } else {
+            Serial.println("\nWiFi connection failed.");
+        }
+    }
+}
+
+
+void connectWIFIandMQTT() {
+    connectWIFI();
+    connectMQTT();
+}
+
+void set_flash()
+{
+  flash = !flash;
+  Serial.print("Setting flash to");
+  Serial.println(flash);
+  if(!flash)
+  {
+    for (int i = 0; i < 6; i++)
+    {
+      digitalWrite(LED_BUILTIN, HIGH);
+      delay(100);
+      digitalWrite(LED_BUILTIN, LOW);
+      delay(100);
+    }
+  }
+  if(flash)
+  {
+    for (int i = 0; i < 3; i++)
+    {
+      digitalWrite(LED_BUILTIN, HIGH);
+      delay(500);
+      digitalWrite(LED_BUILTIN, LOW);
+      delay(500);
+    }
+  }
+}
+
+void take_picture(){
+  camera_fb_t *fb = NULL;
+  if(flash){
+    digitalWrite(LED_BUILTIN, HIGH);
+  };
+  Serial.println("Taking picture");
+  fb = esp_camera_fb_get(); // used to get a single picture
+
+  if(!fb){
+    Serial.println("Camera capture failed");
+    return;
+  }
+  Serial.println("Picture taken");
+  digitalWrite(LED_BUILTIN, LOW);
+
+  esp_camera_fb_return(fb);
+  delay(100);
+  fb = esp_camera_fb_get();
+  esp_camera_fb_return(fb);
+  delay(100);
+  fb = esp_camera_fb_get();
+  delay(500);
+
+  connectWIFIandMQTT();
+
+  sendMQTT(fb->buf, fb->len);
+  delay(300);
+  esp_camera_fb_return(fb);
+}
+void callback(String topic, byte* message, unsigned int length){
+  String messageTemp;
+  Serial.println(topic);
+  for (int i = 0; i < length; i++)
+  {
+    messageTemp += (char)message[i];
+  }
+  if(topic == topic_PHOTO)
+  {
+    take_picture();
+  }
+  if(topic == topic_FLASH)
+  {
+    set_flash();
+  }
+}
 
 void setup() {
   Serial.begin(115200);
@@ -93,15 +205,9 @@ void setup() {
   } else {
     // Best option for face detection/recognition
     config.frame_size = FRAMESIZE_240X240;
-#if CONFIG_IDF_TARGET_ESP32S3
-    config.fb_count = 2;
-#endif
   }
 
-#if defined(CAMERA_MODEL_ESP_EYE)
-  pinMode(13, INPUT_PULLUP);
-  pinMode(14, INPUT_PULLUP);
-#endif
+
 
   // camera init
   esp_err_t err = esp_camera_init(&config);
@@ -122,14 +228,6 @@ void setup() {
     s->set_framesize(s, FRAMESIZE_QVGA);
   }
 
-#if defined(CAMERA_MODEL_M5STACK_WIDE) || defined(CAMERA_MODEL_M5STACK_ESP32CAM)
-  s->set_vflip(s, 1);
-  s->set_hmirror(s, 1);
-#endif
-
-#if defined(CAMERA_MODEL_ESP32S3_EYE)
-  s->set_vflip(s, 1);
-#endif
 
 // Setup LED FLash if LED pin is defined in camera_pins.h
 #if defined(LED_GPIO_NUM)
@@ -151,9 +249,16 @@ void setup() {
   Serial.print("Camera Ready! Use 'http://");
   Serial.print(WiFi.localIP());
   Serial.println("' to connect");
+  client.setServer(mqttServer, port_mqtt);
+  client.setCallback(callback);
+  connectMQTT();
 }
 
 void loop() {
   // Do nothing. Everything is done in another task by the web server
+    if (!client.connected()) {
+        connectMQTT();
+    }
+  client.loop();
   delay(10000);
 }
