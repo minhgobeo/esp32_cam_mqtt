@@ -79,27 +79,6 @@ void connectWIFI() {
         }
     }
 }
-
-
-void connectWIFIandMQTT() {
-    connectWIFI();
-    connectMQTT();
-}
-
-void callback(String topic, byte* message, unsigned int length) {
-  String messageTemp;
-  Serial.println(topic);
-  for (int i = 0; i < length; i++) {
-    messageTemp += (char)message[i];
-  }
-  if (topic == topic_PHOTO) {
-    take_picture();
-  }
-  if (topic == topic_FLASH) {
-    set_flash();
-  }
-}
-
 void take_picture() {
   camera_fb_t * fb = NULL;
   if(flash){ digitalWrite(LED_BUILTIN, HIGH);};
@@ -137,6 +116,26 @@ void set_flash() {
       }
     }
 }
+
+void connectWIFIandMQTT() {
+    connectWIFI();
+    connectMQTT();
+}
+
+void callback(String topic, byte* message, unsigned int length) {
+  String messageTemp;
+  Serial.println(topic);
+  for (int i = 0; i < length; i++) {
+    messageTemp += (char)message[i];
+  }
+  if (topic == topic_PHOTO) {
+    take_picture();
+  }
+  if (topic == topic_FLASH) {
+    set_flash();
+  }
+}
+
 
 
 void setup() {
