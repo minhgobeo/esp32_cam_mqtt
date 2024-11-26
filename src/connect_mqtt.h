@@ -25,20 +25,17 @@ extern const int MAX_PAYLOAD;
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
 
-void sendMQTT(const uint8_t *buf, uint32_t len)
-{
+void sendMQTT(const uint8_t * buf, uint32_t len){
   Serial.println("Sending picture...");
-  if(len > MAX_PAYLOAD)
-  {
+  if(len>MAX_PAYLOAD){
     Serial.print("Picture too large, increase the MAX_PAYLOAD value");
-  }
-  else
-  {
-    Serial.print("Picture sent? : ");
-    client.publish(topic_PUBLISH, buf, len, false);
+  }else{
+    Serial.print("Picture sent ? : ");
     Serial.println(client.publish(topic_PUBLISH, buf, len, false));
   }
+  
 }
+
 
 void connectMQTT() {
         while (!client.connected()) { 

@@ -86,78 +86,58 @@ void connectWIFIandMQTT() {
     connectMQTT();
 }
 
-void set_flash()
-{
-  flash = !flash;
-  Serial.print("Setting flash to");
-  Serial.println(flash);
-  if(!flash)
-  {
-    for (int i = 0; i < 6; i++)
-    {
-      digitalWrite(LED_BUILTIN, HIGH);
-      delay(100);
-      digitalWrite(LED_BUILTIN, LOW);
-      delay(100);
-    }
+void callback(String topic, byte* message, unsigned int length) {
+  String messageTemp;
+  Serial.println(topic);
+  for (int i = 0; i < length; i++) {
+    messageTemp += (char)message[i];
   }
-  if(flash)
-  {
-    for (int i = 0; i < 3; i++)
-    {
-      digitalWrite(LED_BUILTIN, HIGH);
-      delay(500);
-      digitalWrite(LED_BUILTIN, LOW);
-      delay(500);
-    }
+  if (topic == topic_PHOTO) {
+    take_picture();
+  }
+  if (topic == topic_FLASH) {
+    set_flash();
   }
 }
 
-void take_picture(){
-  camera_fb_t *fb = NULL;
-  if(flash){
-    digitalWrite(LED_BUILTIN, HIGH);
-  };
+void take_picture() {
+  camera_fb_t * fb = NULL;
+  if(flash){ digitalWrite(LED_BUILTIN, HIGH);};
   Serial.println("Taking picture");
-  fb = esp_camera_fb_get(); // used to get a single picture
-
-  if(!fb){
+  fb = esp_camera_fb_get(); // used to get a single picture.
+  if (!fb) {
     Serial.println("Camera capture failed");
     return;
   }
   Serial.println("Picture taken");
   digitalWrite(LED_BUILTIN, LOW);
-
-  esp_camera_fb_return(fb);
-  delay(100);
-  fb = esp_camera_fb_get();
-  esp_camera_fb_return(fb);
-  delay(100);
-  fb = esp_camera_fb_get();
-  delay(500);
-
-  connectWIFIandMQTT();
-
   sendMQTT(fb->buf, fb->len);
-  delay(300);
-  esp_camera_fb_return(fb);
+  esp_camera_fb_return(fb); // must be used to free the memory allocated by esp_camera_fb_get().
+  
 }
-void callback(String topic, byte* message, unsigned int length){
-  String messageTemp;
-  Serial.println(topic);
-  for (int i = 0; i < length; i++)
-  {
-    messageTemp += (char)message[i];
-  }
-  if(topic == topic_PHOTO)
-  {
-    take_picture();
-  }
-  if(topic == topic_FLASH)
-  {
-    set_flash();
-  }
+
+void set_flash() {
+    flash = !flash;
+    Serial.print("Setting flash to ");
+    Serial.println (flash);
+    if(!flash){
+      for (int i=0; i<6; i++){
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(100);
+        digitalWrite(LED_BUILTIN, LOW);
+        delay(100);
+      }
+    }
+    if(flash){
+      for (int i=0; i<3; i++){
+        digitalWrite(LED_BUILTIN, HIGH);
+        delay(500);
+        digitalWrite(LED_BUILTIN, LOW);
+        delay(100);
+      }
+    }
 }
+
 
 void setup() {
   Serial.begin(115200);
