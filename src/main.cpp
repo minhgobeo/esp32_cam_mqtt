@@ -79,6 +79,7 @@ void connectWIFI() {
         }
     }
 }
+
 void take_picture() {
   camera_fb_t * fb = NULL;
   if(flash){ digitalWrite(LED_BUILTIN, HIGH);};
@@ -245,3 +246,4 @@ void loop() {
   client.loop();
   delay(10000);
 }
+
