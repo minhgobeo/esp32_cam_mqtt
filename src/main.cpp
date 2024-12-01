@@ -232,7 +232,7 @@ void setup() {
   Serial.print(WiFi.localIP());
   Serial.println("' to connect");
   espClient.setInsecure();
-  client.setServer(mqttServer, port_mqtt);
+  client.setServer(mqtt_user, mqtt_port);
   client.setBufferSize(MAX_PAYLOAD);
   client.setCallback(callback);
   connectMQTT();

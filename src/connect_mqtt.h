@@ -8,12 +8,12 @@
 
 
 
-const char* mqttServer = "bf9e78d9019447609bada8c1a9b76912.s1.eu.hivemq.cloud";
+const char* mqtt_sever = "bf9e78d9019447609bada8c1a9b76912.s1.eu.hivemq.cloud";
 String clientID = "esp32_cam";
-const char* mqttUser = "test_MQQT";
-const char* mqttPassword = "123ABC456abc";
+const char* mqtt_user = "test_MQQT";
+const char* mqtt_password = "123ABC456abc";
 
-const int port_mqtt = 8883;
+const int mqtt_port = 8883;
 
 
 
@@ -40,7 +40,7 @@ void sendMQTT(const uint8_t * buf, uint32_t len){
 void connectMQTT() {
         while (!client.connected()) { 
             clientID = clientID + String(random(0xffff),HEX);
-            if (client.connect(clientID.c_str(),mqttUser, mqttPassword)) {
+            if (client.connect(clientID.c_str(),mqtt_user, mqtt_password)) {
                 Serial.println("Connected to MQTT broker!");
                 // Resubscribe to topics after connection
                 client.subscribe(topic_PHOTO);
