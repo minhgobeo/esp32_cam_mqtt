@@ -244,6 +244,6 @@ void loop() {
         connectWIFIandMQTT();
     }
   client.loop();
-  delay(10000);
+  delay(100);
 }
 
