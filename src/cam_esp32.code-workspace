@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"name": "esp32",
+			"path": "../../esp32"
+		},
+		{
+			"name": "esp32_mqtt",
+			"path": "../../esp32_mqtt"
+		}
+	],
+	"settings": {}
+}
